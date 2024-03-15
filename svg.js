@@ -32,7 +32,7 @@ function grabFileNames(title) {
     .filter((file) => file !== removeNonAlphanumeric);
 }
 
-function createComponent(svgPath, components, ...rest) {
+function createComponent(svgPath) {
   try {
     const svgContent = fs.readFileSync(svgPath, "utf-8");
     const $ = cheerio.load(svgContent, { xmlMode: true });
@@ -48,18 +48,9 @@ function createComponent(svgPath, components, ...rest) {
     let title = toCamelCase(svgElement.attr("title") || `Icon${iconCounter++}`);
     const svgHTML = $.xml(svgElement.contents());
 
-    const functionName = grabFileNames(title);
+    const functionName = toCamelCase(svgPath.replace(".svg", ""));
 
-    if (!functionName || functionName.length === 0) {
-      throw new Error(`Failed to generate function name for file: ${svgPath}`);
-    }
-
-    const exportAll = `export { ${functionName}${
-      components.length > 1 ? `, ${components.join(", ")}` : ""
-    } };`;
-
-    const formattedCode = `
-    function ${functionName}({ height = "${height}", width = "${width}", className, color = "currentColor" , ...rest }) {
+    const exportStatement = `export function ${functionName}({ height = "${height}", width = "${width}", className, color = "currentColor" , ...rest }) {
       return (
         <svg width={width} height={height} viewBox="${svgElement.attr(
           "viewBox"
@@ -69,16 +60,16 @@ function createComponent(svgPath, components, ...rest) {
           </g>
         </svg>
       );
-    }
-    `;
+    }`;
 
-    return formattedCode + exportAll;
+    return exportStatement;
   } catch (error) {
     console.error(`Error processing file: ${svgPath}`);
     console.error(error.message);
     return null;
   }
 }
+
 
 function generateComponents(inputDir, outputDir) {
   try {
