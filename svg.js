@@ -16,7 +16,7 @@ function grabFileNames(title) {
   const filteredFiles = files.filter(file => file.endsWith('.svg'));
   return filteredFiles.map(file => toCamelCase(file.replace('.svg', ''))).filter(file => file !== removeNonAlphanumeric);
 }
-function createComponent(svgPath, components) {
+function createComponent(svgPath, components, ...rest) {
   try {
     const svgContent = fs.readFileSync(svgPath, 'utf-8');
     const $ = cheerio.load(svgContent, { xmlMode: true });
@@ -31,15 +31,17 @@ function createComponent(svgPath, components) {
     const functionName = grabFileNames(title);    const exportAll = `export { ${functionName}${components.length > 1 ? `, ${components.join(', ')}` : ''} };`;
 
     const formattedCode = `
-      function ${functionName}() {
-        return (
-          <svg width="${width}" height="${height}" viewBox="${svgElement.attr('viewBox')}" className="${svgElement.attr('class')}">
+    function ${functionName}({ height = "${height}", width = "${width}", className, color, ...rest }) {
+      return (
+        <svg width={width} height={height} viewBox="${svgElement.attr('viewBox')}" className={className} {...rest}>
+          <g fill={color}>
             ${svgHTML}
-          </svg>
-        );
-      }
-
+          </g>
+        </svg>
+      );
+    }
     `;
+
 
 
     return formattedCode + exportAll;
