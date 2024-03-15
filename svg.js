@@ -31,7 +31,7 @@ function createComponent(svgPath, components, ...rest) {
     const functionName = grabFileNames(title);    const exportAll = `export { ${functionName}${components.length > 1 ? `, ${components.join(', ')}` : ''} };`;
 
     const formattedCode = `
-    function ${functionName}({ height = "${height}", width = "${width}", className, color, ...rest }) {
+    function ${functionName}({ height = "${height}", width = "${width}", className, color = "currentColor" , ...rest }) {
       return (
         <svg width={width} height={height} viewBox="${svgElement.attr('viewBox')}" className={className} {...rest}>
           <g fill={color}>
