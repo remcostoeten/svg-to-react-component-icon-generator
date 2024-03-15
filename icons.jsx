@@ -1,5 +1,5 @@
 
-    function Yt({ height = "24", width = "24", className, color, ...rest }) {
+    function Yt({ height = "24", width = "24", className, color = "currentColor" , ...rest }) {
       return (
         <svg width={width} height={height} viewBox="0 0 24 24" className={className} {...rest}>
           <g fill={color}>
