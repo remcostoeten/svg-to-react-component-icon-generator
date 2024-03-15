@@ -1,5 +1,16 @@
 const fs = require("fs");
-const cheerio = require("cheerio");
+const child_process = require("child_process");
+const chalk = require('chalk');
+let cheerio;
+try {
+  cheerio = require("cheerio");
+} catch (err) {
+  console.error(chalk.red("Cheerio is not installed. Installing it now..."));
+  child_process.execSync("npm install cheerio", { stdio: "inherit" });
+  console.log(chalk.green("Cheerio installed. Rerunning the script..."));
+  child_process.execSync("node " + __filename, { stdio: "inherit" });
+  process.exit(1);
+}
 const path = require("path");
 
 let iconCounter = 1;
@@ -71,7 +82,7 @@ function createComponent(svgPath, components, ...rest) {
 
 function generateComponents(inputDir, outputDir) {
   try {
-    console.log("Starting component generation process...");
+    console.log(chalk.blue("Starting component generation process..."));
     if (!fs.existsSync(inputDir)) {
       throw new Error(`Input directory '${inputDir}' does not exist.`);
     }
@@ -81,16 +92,16 @@ function generateComponents(inputDir, outputDir) {
 
     for (const file of files) {
       if (file.endsWith(".svg")) {
-        console.log(`Processing SVG file: ${file}`);
+        console.log(chalk.yellow(`Processing SVG file: ${file}`));
         const componentCode = createComponent(
           path.join(inputDir, file),
           components
         );
         if (componentCode) {
-          console.log(`Component generated for file: ${file}`);
+          console.log(chalk.green(`Component generated for file: ${file}`));
           components.push(componentCode);
         } else {
-          console.log(`Failed to generate component for file: ${file}`);
+          console.log(chalk.red(`Failed to generate component for file: ${file}`));
         }
       }
     }
@@ -100,14 +111,28 @@ function generateComponents(inputDir, outputDir) {
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
+    const importName = components.map((component) => {
+      return component.split("function ")[1].split("(")[0];
+    });
 
     fs.writeFileSync(path.join(outputDir, "icons.jsx"), allComponents);
-    console.log("Icons generated and written to icons.jsx");
-  } catch (error) {
-    console.error("Error generating components:");
+    console.log(chalk.blue("Icons generated and written to icons.jsx. 💯💯💯"));
+    console.log(chalk("You can now import the icons into your components like so:"));
+    console.log(chalk.green(` import { ${importName} } from 'react'
+
+    export default function Homepage() {
+      return (
+        <${importName} />
+      )
+    }
+    `));
+  }
+  catch (error) {
+    console.error(chalk.red("Error generating components:"));
     console.error(error.message);
   }
 }
+
 
 const inputDirectory = ".";
 const outputDirectory = ".";
